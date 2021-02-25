@@ -35,3 +35,18 @@ type OtpContainer struct {
 type Carousel struct {
 	Carousel [7]string `json:"carousel"`
 }
+
+type Datalist struct {
+	Alldata []string `json:"alldata"`
+}
+
+type Id struct {
+	ID string `json:"id"`
+}
+type Product struct {
+	Name     string `json:"name"`
+	Details  string `json:"details"`
+	Rent     int    `json:"rent"`
+	Duration int    `json:"duration"`
+	IMG      string `json:"img"`
+}

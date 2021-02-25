@@ -17,6 +17,7 @@ import (
 	model "Newbie/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
@@ -26,7 +27,7 @@ var (
 
 func otpauth() {
 	accountSid := "AC1cab9315c49a09f2e53bea328a4799bf"
-	authToken := "8a74136592d8b02377e89c870314cfd2"
+	authToken := "3454674edbd72c9d656a479c80495ad0"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/AC1cab9315c49a09f2e53bea328a4799bf/Messages.json"
 
 	max := 9999
@@ -248,8 +249,104 @@ func Carousel(w http.ResponseWriter, r *http.Request) {
 
 	var picture model.Carousel
 
-	picture.Carousel = [7]string{"https://susmit7.github.io/RHT/car/1.jpg", "https://susmit7.github.io/RHT/car/2.jpg", "https://susmit7.github.io/RHT/car/3.jpg", "https://susmit7.github.io/RHT/car/4.jpg", "https://susmit7.github.io/RHT/car/5.jpg", "https://susmit7.github.io/RHT/car/6.jpg", "https://susmit7.github.io/RHT/car/7.jpg"}
+	picture.Carousel = [7]string{"https://rht007.s3.amazonaws.com/carousel/1.jpg", "https://rht007.s3.amazonaws.com/carousel/2.jpg", "https://rht007.s3.amazonaws.com/carousel/3.jpg", "https://rht007.s3.amazonaws.com/carousel/4.jpg", "https://rht007.s3.amazonaws.com/carousel/5.jpg", "https://rht007.s3.amazonaws.com/carousel/6.jpg", "https://rht007.s3.amazonaws.com/carousel/7.jpg"}
 
 	json.NewEncoder(w).Encode(picture)
 
+}
+
+//product_details handler
+
+func ProductHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/product" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	//var key string
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	//fmt.Println(`bson.M{"_id": docID}:`, bson.M{"_id": docID})
+	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&product)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	json.NewEncoder(w).Encode(product)
+
+}
+
+//product details handler
+func ProductListHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	//var key string
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	var datalist []bson.D
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	//var alldata model.Datalist
+	if err = cursor.All(context.TODO(), datalist); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(datalist)
 }

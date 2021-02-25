@@ -10,7 +10,7 @@ import (
 
 // GetDBCollection ...
 func GetDBCollection(collectione string) (*mongo.Collection, error) {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://susmit:6rusThrCaEhRyEx9@cluster0.whsab.mongodb.net/RHT?retryWrites=true&w=majority"))
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://ronnie:rSoK0JNHEkY3y2UR@cluster1-shard-00-00.but8y.mongodb.net:27017,cluster1-shard-00-01.but8y.mongodb.net:27017,cluster1-shard-00-02.but8y.mongodb.net:27017/RHT?ssl=true&replicaSet=atlas-130qu9-shard-0&authSource=admin&retryWrites=true&w=majority"))
 	if err != nil {
 		panic(err)
 	}
