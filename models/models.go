@@ -53,3 +53,16 @@ type Product struct {
 	Duration int                `json:"duration"`
 	IMG      string             `json:"img"`
 }
+
+type Items struct {
+	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
+	Subcategoryid primitive.ObjectID   `json:"subcategoryid" bson:"subcategoryid"`
+	Name          string               `json:"name" bson:"name"`
+	Img           string               `json:"img" bson:"img"`
+	Details       string               `json:"details" bson:"details"`
+	Price         int                  `json:"price" bson:"price"`
+	Rent          int                  `json:"rent" bson:"rent"`
+	Duration      int                  `json:"duration" bson:"duration"`
+	Itemsid       []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
+	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
+}

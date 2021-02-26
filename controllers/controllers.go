@@ -339,10 +339,14 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var datalist []bson.D
-	if err = cursor.All(context.TODO(), &datalist); err != nil {
-		log.Fatal(err)
-	}
-	json.NewEncoder(w).Encode(datalist)
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
 
+		json.NewEncoder(w).Encode(items)
+
+	}
 }
