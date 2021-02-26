@@ -20,6 +20,6 @@ func main() {
 	r.HandleFunc("/api/resend", controller.Resendotp).Methods("GET")
 	r.HandleFunc("/api/carousel", controller.Carousel).Methods("GET")
 	r.HandleFunc("/api/product", controller.ProductHandler).Methods("GET")
-
+	r.HandleFunc("/api/productslist", controller.ProductsListHandler).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

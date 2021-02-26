@@ -273,7 +273,6 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 	var product model.Product
 	var id model.Id
 	body, _ := ioutil.ReadAll(r.Body)
-	//var key string
 	err := json.Unmarshal(body, &id)
 	var res model.ResponseResult
 
@@ -291,14 +290,59 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	docID, err := primitive.ObjectIDFromHex(id.ID)
-	//fmt.Println(`bson.M{"_id": docID}:`, bson.M{"_id": docID})
+
 	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&product)
 	if err != nil {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	//fmt.Println(product.Id)
+
 	json.NewEncoder(w).Encode(product)
+
+}
+
+//productlisthandler
+func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var datalist []bson.D
+	if err = cursor.All(context.TODO(), &datalist); err != nil {
+		log.Fatal(err)
+	}
+	json.NewEncoder(w).Encode(datalist)
 
 }
