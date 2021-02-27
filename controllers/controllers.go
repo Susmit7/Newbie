@@ -27,7 +27,7 @@ var (
 
 func otpauth() {
 	accountSid := "AC1cab9315c49a09f2e53bea328a4799bf"
-	authToken := "3454674edbd72c9d656a479c80495ad0"
+	authToken := ""
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/AC1cab9315c49a09f2e53bea328a4799bf/Messages.json"
 
 	max := 9999
@@ -338,15 +338,16 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	var list model.Listitems
+	list.Arr = []model.Items{}
 	defer cursor.Close(context.TODO())
 	for cursor.Next(context.TODO()) {
 		var items model.Items
 		if err = cursor.Decode(&items); err != nil {
 			log.Fatal(err)
 		}
-
-		json.NewEncoder(w).Encode(items)
+		list.Arr = append(list.Arr, items)
 
 	}
+	json.NewEncoder(w).Encode(list)
 }
