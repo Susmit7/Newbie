@@ -338,15 +338,15 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var list model.Listitems
-	list.Arr = []model.Items{}
+	var list []model.Items
+	//list = []model.Items{}
 	defer cursor.Close(context.TODO())
 	for cursor.Next(context.TODO()) {
 		var items model.Items
 		if err = cursor.Decode(&items); err != nil {
 			log.Fatal(err)
 		}
-		list.Arr = append(list.Arr, items)
+		list = append(list, items)
 
 	}
 	json.NewEncoder(w).Encode(list)

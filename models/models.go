@@ -67,6 +67,6 @@ type Items struct {
 	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
 }
 
-type Listitems struct {
-	Arr []Items `json:"arr" bson:"arr"`
-}
+/*type Listitems struct {
+	Arr []Items
+}*/
