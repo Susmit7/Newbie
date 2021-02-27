@@ -264,7 +264,7 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "GET" {
+	if r.Method != "POST" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
@@ -310,7 +310,7 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "GET" {
+	if r.Method != "POST" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
