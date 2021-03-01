@@ -305,7 +305,7 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 //productlisthandler
 func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/productslist/appliences/tv" {
+	if r.URL.Path != "/api/productslist/appliances/tv" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
 	}
