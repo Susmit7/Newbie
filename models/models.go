@@ -43,7 +43,7 @@ type Datalist struct {
 }
 
 type Id struct {
-	ID string `json:"id"`
+	ID string `json:"id" bson:"id"`
 }
 type Product struct {
 	Id       primitive.ObjectID `json:"id" bson:"_id"`
@@ -66,7 +66,3 @@ type Items struct {
 	Itemsid       []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
 	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
 }
-
-/*type Listitems struct {
-	Arr []Items
-}*/

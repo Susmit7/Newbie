@@ -21,5 +21,6 @@ func main() {
 	r.HandleFunc("/api/carousel", controller.Carousel).Methods("GET")
 	r.HandleFunc("/api/product", controller.ProductHandler).Methods("POST")
 	r.HandleFunc("/api/productslist/appliances/tv", controller.ProductsListHandler).Methods("POST")
+	r.HandleFunc("/api/usercreation", controller.UserCreationHandler).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

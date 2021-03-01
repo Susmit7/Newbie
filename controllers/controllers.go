@@ -352,3 +352,31 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(list)
 }
+
+//user creation
+
+func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/usercreation" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	collection, err := db.GetDBCollection("user")
+	var user model.User
+	var res model.ResponseResult
+	var id model.Id
+	result, err := collection.InsertOne(context.TODO(), user)
+	if err != nil {
+		res.Error = "Error While Creating User, Try Again"
+		json.NewEncoder(w).Encode(res)
+	}
+	oid, _ := result.InsertedID.(primitive.ObjectID)
+	id.ID = oid.Hex()
+	json.NewEncoder(w).Encode(id)
+
+}
