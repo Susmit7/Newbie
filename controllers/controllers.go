@@ -305,7 +305,7 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 //productlisthandler
 func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/productslist" {
+	if r.URL.Path != "/api/productslist/appliences/tv" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
 	}
@@ -334,7 +334,7 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	docID, err := primitive.ObjectIDFromHex(id.ID)
-	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID})
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": "6035780bd971203aa45a403e"})
 	if err != nil {
 		log.Fatal(err)
 	}
