@@ -334,7 +334,8 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	docID, err := primitive.ObjectIDFromHex(id.ID)
-	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": "6035780bd971203aa45a403e"})
+	docID1, err := primitive.ObjectIDFromHex("6035780bd971203aa45a403d")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
 	if err != nil {
 		log.Fatal(err)
 	}
