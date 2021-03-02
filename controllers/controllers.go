@@ -302,8 +302,8 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//productlisthandler
-func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
+//TV APi
+func ProductsListTV(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/api/productslist/appliances/tv" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
@@ -335,6 +335,416 @@ func ProductsListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	docID, err := primitive.ObjectIDFromHex(id.ID)
 	docID1, err := primitive.ObjectIDFromHex("603cc4bfba5cf916fc193c79")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//WM api
+
+func ProductsListWM(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/appliances/wm" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc513ba5cf916fc193c7a")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//fridge api
+
+func ProductsListFridge(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/appliances/fridge" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc56aba5cf916fc193c7c")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//ac api
+func ProductsListAC(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/appliances/ac" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc5b7ba5cf916fc193c7d")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+// other appliances api
+func ProductsListOthApp(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/appliances/others" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc5c5ba5cf916fc193c7e")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//kitchen stove api
+func ProductsListStove(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/kitchen/stove" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc862bafedb7aabe4c78a")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//kitchen microwave api
+func ProductsListMicro(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/kitchen/micro" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc87abafedb7aabe4c78b")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//kitchen rack api
+func ProductsListRacks(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/kitchen/racks" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc891bafedb7aabe4c78c")
+	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var list []model.Items
+	//list = []model.Items{}
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		var items model.Items
+		if err = cursor.Decode(&items); err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, items)
+
+	}
+	json.NewEncoder(w).Encode(list)
+}
+
+//others kitchen api
+func ProductsListOthKit(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productslist/kitchen/others" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID)
+	docID1, err := primitive.ObjectIDFromHex("603cc8a8bafedb7aabe4c78d")
 	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
 	if err != nil {
 		log.Fatal(err)
