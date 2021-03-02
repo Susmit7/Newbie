@@ -43,7 +43,8 @@ type Datalist struct {
 }
 
 type Id struct {
-	ID string `json:"id" bson:"id"`
+	ID1 string `json:"id" bson:"id"`
+	Sub string `json:"sub,omitempty" bson:"sub,omitempty"`
 }
 type Product struct {
 	Id       primitive.ObjectID `json:"id" bson:"_id"`
