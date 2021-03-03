@@ -24,5 +24,6 @@ func main() {
 	r.HandleFunc("/api/product", controller.ProductHandler).Methods("POST")
 	r.HandleFunc("/api/productslist", controller.ProductsList).Methods("POST")
 	r.HandleFunc("/api/usercreation", controller.UserCreationHandler).Methods("GET")
+	r.HandleFunc("/api/wishlist", controller.WishlistHandler).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

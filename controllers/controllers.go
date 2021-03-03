@@ -86,7 +86,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection, err := db.GetDBCollection("user")
+	collection, client, err := db.GetDBCollection("user")
 
 	var result model.User
 	err = collection.FindOne(context.TODO(), bson.D{{Key: "phone", Value: user.Phone}}).Decode(&result)
@@ -113,6 +113,10 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(res)
 			return
 		}
+	}
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
 	}
 
 }
@@ -162,12 +166,16 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		} else if trials == 5 {
 			res.Error = "Data Deleted, Signup again!"
 			json.NewEncoder(w).Encode(res)
-			collection, err := db.GetDBCollection("user")
+			collection, client, err := db.GetDBCollection("user")
 			_, err = collection.DeleteOne(context.TODO(), bson.M{"phone": userOtp.Number})
 			if err != nil {
 				log.Fatal(err)
 			}
 			trials = 0
+			err = client.Disconnect(context.TODO())
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 	}
@@ -198,7 +206,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	collection, err := db.GetDBCollection("user")
+	collection, client, err := db.GetDBCollection("user")
 	var result model.Login
 	err = collection.FindOne(context.TODO(), bson.D{{Key: "phone", Value: login.Contact}}).Decode(&result)
 
@@ -214,6 +222,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		otpauth()
 
+	}
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -282,7 +294,7 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection, err := db.GetDBCollection("products")
+	collection, client, err := db.GetDBCollection("products")
 
 	if err != nil {
 		res.Error = err.Error()
@@ -299,6 +311,10 @@ func ProductHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(product)
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 
@@ -326,7 +342,7 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	collection, err := db.GetDBCollection("products")
+	collection, client, err := db.GetDBCollection("products")
 
 	if err != nil {
 		res.Error = err.Error()
@@ -334,7 +350,13 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 
 	}
 	docID, err := primitive.ObjectIDFromHex(id.ID1)
+	if err != nil {
+		log.Fatal(err)
+	}
 	docID1, err := primitive.ObjectIDFromHex(id.Sub)
+	if err != nil {
+		log.Fatal(err)
+	}
 	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
 	if err != nil {
 		log.Fatal(err)
@@ -351,6 +373,10 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 
 	}
 	json.NewEncoder(w).Encode(list)
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 //user creation
@@ -366,7 +392,11 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
-	collection, err := db.GetDBCollection("user")
+	collection, client, err := db.GetDBCollection("user")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var user model.User
 	var res model.ResponseResult
 	var id model.Id
@@ -377,6 +407,104 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	oid, _ := result.InsertedID.(primitive.ObjectID)
 	id.ID1 = oid.Hex()
+
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+	collection, client, err1 := db.GetDBCollection("wishlist")
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+	var wish model.Wishlist
+	wish.Userid = oid
+	result1, err2 := collection.InsertOne(context.TODO(), wish)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	oidw, _ := result1.InsertedID.(primitive.ObjectID)
+
+	fmt.Println(oidw)
+
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+	collection, client, err22 := db.GetDBCollection("cart")
+	if err22 != nil {
+		log.Fatal(err22)
+	}
+	result2, err33 := collection.InsertOne(context.TODO(), wish)
+	if err33 != nil {
+		log.Fatal(err33)
+	}
+	oidc, _ := result2.InsertedID.(primitive.ObjectID)
+
+	fmt.Println(oidc)
 	json.NewEncoder(w).Encode(id)
+}
+
+// wishlist api
+
+func WishlistHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/wishlist" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var wishlist model.Cartproduct
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &wishlist)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, client, err := db.GetDBCollection("wishlist")
+	if err != nil {
+		log.Fatal(err)
+	}
+	docID, err := primitive.ObjectIDFromHex(wishlist.Userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	filter := bson.M{"userid": docID}
+	docID1, err := primitive.ObjectIDFromHex(wishlist.Productid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if wishlist.Status == true {
+		update := bson.M{"$push": bson.M{"itemsId": docID1}}
+		_, err1 := collection.UpdateOne(context.TODO(), filter, update)
+		if err1 != nil {
+			log.Fatal(err1)
+		}
+		response := true
+		json.NewEncoder(w).Encode(response)
+
+	} else if wishlist.Status == false {
+		update := bson.M{"$pull": bson.M{"itemsId": docID1}}
+		_, err1 := collection.UpdateOne(context.TODO(), filter, update)
+		if err1 != nil {
+			log.Fatal(err1)
+		}
+		response := false
+		json.NewEncoder(w).Encode(response)
+	}
+
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }

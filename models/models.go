@@ -67,3 +67,14 @@ type Items struct {
 	Itemsid       []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
 	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
 }
+
+type Wishlist struct {
+	Userid    primitive.ObjectID   `json:"userid" bson:"userid"`
+	Productid []primitive.ObjectID `json:"productid" bson:"productid"`
+}
+
+type Cartproduct struct {
+	Status    bool   `json:"status" bson:"status"`
+	Userid    string `json:"userid" bson:"userid"`
+	Productid string `json:"productid" bson:"productid"`
+}
