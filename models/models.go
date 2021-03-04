@@ -69,8 +69,7 @@ type Items struct {
 }
 
 type Wishlist struct {
-	Userid    primitive.ObjectID   `json:"userid" bson:"userid"`
-	Productid []primitive.ObjectID `json:"productid" bson:"productid"`
+	Userid primitive.ObjectID `json:"userid" bson:"userid"`
 }
 
 type Cartproduct struct {
