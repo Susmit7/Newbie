@@ -267,58 +267,7 @@ func Carousel(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//product_details handler
-
-func ProductHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.URL.Path != "/api/product" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	var product model.Product
-	var id model.Id
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &id)
-	var res model.ResponseResult
-
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-
-	collection, client, err := db.GetDBCollection("products")
-
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-	docID, err := primitive.ObjectIDFromHex(id.ID1)
-
-	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&product)
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-
-	json.NewEncoder(w).Encode(product)
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-}
-
-//TV APi
+//productslist APi
 func ProductsList(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/api/productslist" {
@@ -362,7 +311,6 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	var list []model.Items
-	//list = []model.Items{}
 	defer cursor.Close(context.TODO())
 	for cursor.Next(context.TODO()) {
 		var items model.Items
@@ -388,7 +336,7 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "GET" {
+	if r.Method != "PUT" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
@@ -507,4 +455,79 @@ func WishlistHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+}
+
+//wishlist products showing api
+
+func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/wishlistproducts" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	collection, client, err := db.GetDBCollection("wishlist")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var product model.Wishlistarray
+	err = collection.FindOne(context.TODO(), bson.M{"userid": docID}).Decode(&product)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	collection1, client1, err1 := db.GetDBCollection("products")
+	if err1 != nil {
+		res.Error = err1.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	//fmt.Println(len(product.Wisharr))
+	//fmt.Println(product.Wisharr[0])
+	var list []model.Items
+	var item model.Items
+	for i := 0; i < len(product.Wisharr); i++ {
+
+		err = collection1.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
+		if err != nil {
+			res.Error = err.Error()
+			json.NewEncoder(w).Encode(res)
+
+		}
+		list = append(list, item)
+	}
+	json.NewEncoder(w).Encode(list)
+	err = client1.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -46,15 +46,6 @@ type Id struct {
 	ID1 string `json:"id" bson:"id"`
 	Sub string `json:"sub,omitempty" bson:"sub,omitempty"`
 }
-type Product struct {
-	Id       primitive.ObjectID `json:"id" bson:"_id"`
-	Name     string             `json:"name"`
-	Details  string             `json:"details"`
-	Rent     int                `json:"rent"`
-	Duration int                `json:"duration"`
-	IMG      string             `json:"img"`
-}
-
 type Items struct {
 	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
 	Subcategoryid primitive.ObjectID   `json:"subcategoryid" bson:"subcategoryid"`
@@ -76,4 +67,8 @@ type Cartproduct struct {
 	Status    bool   `json:"status" bson:"status"`
 	Userid    string `json:"userid" bson:"userid"`
 	Productid string `json:"productid" bson:"productid"`
+}
+
+type Wishlistarray struct {
+	Wisharr []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
 }
