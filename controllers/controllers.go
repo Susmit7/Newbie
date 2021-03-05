@@ -336,7 +336,7 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "PUT" {
+	if r.Method != "GET" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
@@ -401,7 +401,7 @@ func WishlistHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "POST" {
+	if r.Method != "PATCH" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
@@ -527,6 +527,56 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(list)
 	err = client1.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+//product details showing api
+
+func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/api/productdetails" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	//var product model.Product
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, client, err := db.GetDBCollection("products")
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	docID, err := primitive.ObjectIDFromHex(id.ID1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var item model.Items
+	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&item)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	json.NewEncoder(w).Encode(item)
+	err = client.Disconnect(context.TODO())
 	if err != nil {
 		log.Fatal(err)
 	}
