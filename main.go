@@ -13,6 +13,7 @@ import (
 func main() {
 	r := mux.NewRouter()
 	http.Handle("/", r)
+	fmt.Println("Starting Server.....")
 	fmt.Println("Listening on Port 8080......")
 
 	//signup and login apis
