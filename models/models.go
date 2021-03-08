@@ -6,13 +6,13 @@ import (
 
 // User is ...
 type User struct {
-	Name          string             `json:"name" bson:"name,omitempty"`
-	Phone         string             `json:"phone" bson:"phone,omitempty"`
-	Email         string             `json:"email" bson:"email,omitempty"`
-	Address       string             `json:"address" bson:"address,omitempty"`
-	LocationID    primitive.ObjectID `json:"location" bson:"location,omitempty"`
-	Current_order []string           `json:"current" bson:"current,omitempty"`
-	Past_order    []string           `json:"past" bson:"past,omitempty"`
+	Name         string             `json:"name" bson:"name,omitempty"`
+	Phone        string             `json:"phone" bson:"phone,omitempty"`
+	Email        string             `json:"email" bson:"email,omitempty"`
+	Address      string             `json:"address" bson:"address,omitempty"`
+	LocationID   primitive.ObjectID `json:"location" bson:"location,omitempty"`
+	CurrentOrder []string           `json:"current" bson:"current,omitempty"`
+	PastOrder    []string           `json:"past" bson:"past,omitempty"`
 }
 
 //login...

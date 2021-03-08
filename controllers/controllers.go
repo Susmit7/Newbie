@@ -504,7 +504,6 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(res)
 
 		}
-
 		err = client.Disconnect(context.TODO())
 		if err != nil {
 			log.Fatal(err)
@@ -516,8 +515,6 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(res)
 
 		}
-		//fmt.Println(len(product.Wisharr))
-		//fmt.Println(product.Wisharr[0])
 		var list []model.Items
 		var item model.Items
 		for i := 0; i < len(product.Wisharr); i++ {
@@ -539,7 +536,6 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //product details showing api
-
 func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/api/productdetails" {
@@ -586,4 +582,5 @@ func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
