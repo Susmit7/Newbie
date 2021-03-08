@@ -401,7 +401,7 @@ func WishlistHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method != "PATCH" {
+	if r.Method != "POST" {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
@@ -469,6 +469,7 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	//var product model.Product
 	var id model.Id
@@ -481,54 +482,59 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 
 	}
-	collection, client, err := db.GetDBCollection("wishlist")
-
-	if err != nil {
-		res.Error = err.Error()
+	if id.ID1 == "" {
+		res.Error = "empty string"
 		json.NewEncoder(w).Encode(res)
+	} else {
+		collection, client, err := db.GetDBCollection("wishlist")
 
-	}
-	docID, err := primitive.ObjectIDFromHex(id.ID1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var product model.Wishlistarray
-	err = collection.FindOne(context.TODO(), bson.M{"userid": docID}).Decode(&product)
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-
-	}
-
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	collection1, client1, err1 := db.GetDBCollection("products")
-	if err1 != nil {
-		res.Error = err1.Error()
-		json.NewEncoder(w).Encode(res)
-
-	}
-	//fmt.Println(len(product.Wisharr))
-	//fmt.Println(product.Wisharr[0])
-	var list []model.Items
-	var item model.Items
-	for i := 0; i < len(product.Wisharr); i++ {
-
-		err = collection1.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
 		if err != nil {
 			res.Error = err.Error()
 			json.NewEncoder(w).Encode(res)
 
 		}
-		list = append(list, item)
-	}
-	json.NewEncoder(w).Encode(list)
-	err = client1.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
+		docID, err := primitive.ObjectIDFromHex(id.ID1)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var product model.Wishlistarray
+		err = collection.FindOne(context.TODO(), bson.M{"userid": docID}).Decode(&product)
+		if err != nil {
+			res.Error = err.Error()
+			json.NewEncoder(w).Encode(res)
+
+		}
+
+		err = client.Disconnect(context.TODO())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		collection1, client1, err1 := db.GetDBCollection("products")
+		if err1 != nil {
+			res.Error = err1.Error()
+			json.NewEncoder(w).Encode(res)
+
+		}
+		//fmt.Println(len(product.Wisharr))
+		//fmt.Println(product.Wisharr[0])
+		var list []model.Items
+		var item model.Items
+		for i := 0; i < len(product.Wisharr); i++ {
+
+			err = collection1.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
+			if err != nil {
+				res.Error = err.Error()
+				json.NewEncoder(w).Encode(res)
+
+			}
+			list = append(list, item)
+		}
+		json.NewEncoder(w).Encode(list)
+		err = client1.Disconnect(context.TODO())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

@@ -24,9 +24,10 @@ func main() {
 
 	r.HandleFunc("/api/productslist", controller.ProductsList).Methods("POST")
 	r.HandleFunc("/api/usercreation", controller.UserCreationHandler).Methods("GET")
-	r.HandleFunc("/api/wishlist", controller.WishlistHandler).Methods("PATCH")
+	r.HandleFunc("/api/wishlist", controller.WishlistHandler).Methods("POST")
 	r.HandleFunc("/api/wishlistproducts", controller.WishlistProductsHandler).Methods("POST")
 
 	r.HandleFunc("/api/productdetails", controller.ProductDetailsHandler).Methods("POST")
+
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
