@@ -516,7 +516,8 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 	var list []model.Items
 	var item model.Items
 	for i := 0; i < len(product.Wisharr); i++ {
-
+		item.Img = nil
+		item.Itemsid = nil
 		err = collection1.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
 		if err != nil {
 			res.Error = err.Error()
