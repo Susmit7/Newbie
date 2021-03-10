@@ -1,11 +1,10 @@
 package main
 
 import (
+	controller "Newbie/controllers"
 	"fmt"
 	"log"
 	"net/http"
-
-	controller "Newbie/controllers"
 
 	"github.com/gorilla/mux"
 )
@@ -16,8 +15,7 @@ func main() {
 	fmt.Println("Starting Server.....")
 	fmt.Println("Listening on Port 8080......")
 
-	//signup and login apis
-	r.HandleFunc("/api/signUp", controller.SignUpHandler).Methods("POST")
+	r.HandleFunc("/api/account", controller.SignUpHandler).Methods("POST")
 	r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
 	r.HandleFunc("/api/login", controller.LoginHandler).Methods("POST")
 	r.HandleFunc("/api/resend", controller.Resendotp).Methods("GET")

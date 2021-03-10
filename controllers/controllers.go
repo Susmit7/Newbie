@@ -15,6 +15,7 @@ import (
 
 	"Newbie/db"
 	model "Newbie/models"
+	"Newbie/query"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,6 +25,18 @@ var (
 	otp    string = "0000"
 	trials        = 0
 )
+
+func Check(url string, method string, w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/api/"+url {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != method {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+}
 
 func otpauth() {
 	accountSid := "AC1cab9315c49a09f2e53bea328a4799bf"
@@ -65,36 +78,35 @@ func otpauth() {
 // SignUpHandler ...
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/signUp" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("account", "POST", w, r)
 
 	w.Header().Set("Content-Type", "application/json")
-	var user model.User
+	var data model.Account
 	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &user)
+	err := json.Unmarshal(body, &data)
 	var res model.ResponseResult
 	if err != nil {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
-		return
+
 	}
 
 	collection, client, err := db.GetDBCollection("user")
+	if err != nil {
+		log.Fatal(err)
 
-	var result model.User
-	err = collection.FindOne(context.TODO(), bson.D{{Key: "phone", Value: user.Phone}}).Decode(&result)
+	}
+	docID, err := primitive.ObjectIDFromHex(data.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var user model.User
+	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&user)
 
-	if err == nil {
+	if user.Phone == "" {
 		res.Result = "Phone Number already Registered!!"
 		json.NewEncoder(w).Encode(res)
-		return
+
 	}
 
 	if err != nil {
@@ -233,15 +245,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func Resendotp(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/resend" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("resend", "GET", w, r)
 
 	otpauth()
 }
@@ -249,15 +253,8 @@ func Resendotp(w http.ResponseWriter, r *http.Request) {
 //carousel
 
 func Carousel(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/api/carousel" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
 
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("carousel", "GET", w, r)
 
 	var picture model.Carousel
 
@@ -270,50 +267,26 @@ func Carousel(w http.ResponseWriter, r *http.Request) {
 //productslist APi
 func ProductsList(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/productslist" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
+	Check("productslist", "POST", w, r)
 
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
-	//var product model.Product
+	var items model.Items
 	var id model.Id
+	var list []model.Items
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &id)
-	var res model.ResponseResult
 
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-	collection, client, err := db.GetDBCollection("products")
-
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-
-	}
-	docID, err := primitive.ObjectIDFromHex(id.ID1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	docID1, err := primitive.ObjectIDFromHex(id.Sub)
-	if err != nil {
-		log.Fatal(err)
-	}
-	cursor, err := collection.Find(context.TODO(), bson.M{"locationid": docID, "subcategoryid": docID1})
-	if err != nil {
-		log.Fatal(err)
-	}
-	var list []model.Items
+	filter := bson.M{"locationid": query.DocId(id.ID1), "subcategoryid": query.DocId(id.Sub)}
+
+	cursor := query.FindAll("products", filter)
+
 	defer cursor.Close(context.TODO())
 	for cursor.Next(context.TODO()) {
-		var items model.Items
+		items.Img = nil
+		items.Itemsid = nil
 		if err = cursor.Decode(&items); err != nil {
 			log.Fatal(err)
 		}
@@ -321,71 +294,31 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 
 	}
 	json.NewEncoder(w).Encode(list)
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 //user creation
 
 func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/usercreation" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-	collection, client, err := db.GetDBCollection("user")
-	if err != nil {
-		log.Fatal(err)
-	}
+	Check("usercreation", "GET", w, r)
 
 	var user model.User
-	var res model.ResponseResult
+
 	var id model.Id
-	result, err := collection.InsertOne(context.TODO(), user)
-	if err != nil {
-		res.Error = "Error While Creating User, Try Again"
-		json.NewEncoder(w).Encode(res)
-	}
+	result := query.InsertOne("user", user)
+
 	oid, _ := result.InsertedID.(primitive.ObjectID)
 	id.ID1 = oid.Hex()
 
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-	collection, client, err1 := db.GetDBCollection("wishlist")
-	if err1 != nil {
-		log.Fatal(err1)
-	}
 	var wish model.Wishlist
 	wish.Userid = oid
-	result1, err2 := collection.InsertOne(context.TODO(), wish)
-	if err2 != nil {
-		log.Fatal(err2)
-	}
+
+	result1 := query.InsertOne("wishlist", wish)
 	oidw, _ := result1.InsertedID.(primitive.ObjectID)
 
 	fmt.Println(oidw)
 
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-	collection, client, err22 := db.GetDBCollection("cart")
-	if err22 != nil {
-		log.Fatal(err22)
-	}
-	result2, err33 := collection.InsertOne(context.TODO(), wish)
-	if err33 != nil {
-		log.Fatal(err33)
-	}
+	result2 := query.InsertOne("cart", wish)
 	oidc, _ := result2.InsertedID.(primitive.ObjectID)
 
 	fmt.Println(oidc)
@@ -396,159 +329,72 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 func WishlistHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/wishlist" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("wishlist", "POST", w, r)
 	w.Header().Set("Content-Type", "application/json")
-	//var product model.Product
 	var wishlist model.Cartproduct
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &wishlist)
-	var res model.ResponseResult
 
 	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-		return
-	}
-	collection, client, err := db.GetDBCollection("wishlist")
-	if err != nil {
 		log.Fatal(err)
 	}
-	docID, err := primitive.ObjectIDFromHex(wishlist.Userid)
-	if err != nil {
-		log.Fatal(err)
-	}
-	filter := bson.M{"userid": docID}
-	docID1, err := primitive.ObjectIDFromHex(wishlist.Productid)
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	filter := bson.M{"userid": query.DocId(wishlist.Userid)}
 
 	if wishlist.Status == true {
-		update := bson.M{"$push": bson.M{"itemsId": docID1}}
-		_, err1 := collection.UpdateOne(context.TODO(), filter, update)
-		if err1 != nil {
-			log.Fatal(err1)
-		}
+		update := bson.M{"$push": bson.M{"itemsId": query.DocId(wishlist.Productid)}}
+		query.UpdateOne("wishlist", filter, update)
 		response := true
 		json.NewEncoder(w).Encode(response)
 
 	} else if wishlist.Status == false {
-		update := bson.M{"$pull": bson.M{"itemsId": docID1}}
-		_, err1 := collection.UpdateOne(context.TODO(), filter, update)
-		if err1 != nil {
-			log.Fatal(err1)
-		}
+		update := bson.M{"$pull": bson.M{"itemsId": query.DocId(wishlist.Productid)}}
+		query.UpdateOne("wishlist", filter, update)
 		response := false
 		json.NewEncoder(w).Encode(response)
 	}
-
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
 
 //wishlist products showing api
 
 func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/api/wishlistproducts" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
 
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
+	Check("wishlistproducts", "POST", w, r)
 	w.Header().Set("Content-Type", "application/json")
-	//var product model.Product
+
 	var id model.Id
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &id)
-	var res model.ResponseResult
 
 	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
+		log.Fatal(err)
 
 	}
-	if id.ID1 == "" {
-		res.Error = "empty string"
-		json.NewEncoder(w).Encode(res)
-	} else {
-		collection, client, err := db.GetDBCollection("wishlist")
-
-		if err != nil {
-			res.Error = err.Error()
-			json.NewEncoder(w).Encode(res)
-
-		}
-		docID, err := primitive.ObjectIDFromHex(id.ID1)
-		if err != nil {
-			log.Fatal(err)
-		}
-		var product model.Wishlistarray
-		err = collection.FindOne(context.TODO(), bson.M{"userid": docID}).Decode(&product)
-		if err != nil {
-			res.Error = err.Error()
-			json.NewEncoder(w).Encode(res)
-
-		}
-		err = client.Disconnect(context.TODO())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		collection1, client1, err1 := db.GetDBCollection("products")
-		if err1 != nil {
-			res.Error = err1.Error()
-			json.NewEncoder(w).Encode(res)
-
-		}
-		var list []model.Items
-		var item model.Items
-		for i := 0; i < len(product.Wisharr); i++ {
-
-			err = collection1.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
-			if err != nil {
-				res.Error = err.Error()
-				json.NewEncoder(w).Encode(res)
-
-			}
-			list = append(list, item)
-		}
-		json.NewEncoder(w).Encode(list)
-		err = client1.Disconnect(context.TODO())
-		if err != nil {
-			log.Fatal(err)
-		}
+	var product model.Wishlistarray
+	err = query.FindoneID("wishlist", id.ID1, "userid").Decode(&product)
+	if err != nil {
+		log.Fatal(err)
 	}
+	var list []model.Items
+	var item model.Items
+	for i := 0; i < len(product.Wisharr); i++ {
+		item.Img = nil
+		item.Itemsid = nil
+		err = query.FindoneID("products", product.Wisharr[i].Hex(), "_id").Decode(&item)
+		if err != nil {
+			log.Fatal(err)
+		}
+		list = append(list, item)
+	}
+	json.NewEncoder(w).Encode(list)
 }
 
 //product details showing api
 func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/productdetails" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("productdetails", "POST", w, r)
 	w.Header().Set("Content-Type", "application/json")
-	//var product model.Product
+
 	var id model.Id
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &id)
@@ -559,28 +405,12 @@ func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-	collection, client, err := db.GetDBCollection("products")
-
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-
-	}
-	docID, err := primitive.ObjectIDFromHex(id.ID1)
-	if err != nil {
-		log.Fatal(err)
-	}
 	var item model.Items
-	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&item)
-	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
-
-	}
-	json.NewEncoder(w).Encode(item)
-	err = client.Disconnect(context.TODO())
+	err = query.FindoneID("products", id.ID1, "_id").Decode(&item)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	json.NewEncoder(w).Encode(item)
 
 }

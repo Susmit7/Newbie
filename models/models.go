@@ -72,3 +72,8 @@ type Cartproduct struct {
 type Wishlistarray struct {
 	Wisharr []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
 }
+
+type Account struct {
+	ID    string `json:"userid"`
+	Exist bool   `json:"exist"`
+}
