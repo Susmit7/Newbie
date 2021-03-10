@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	Check("account", "POST", w, r)
 
 	w.Header().Set("Content-Type", "application/json")
-	var data model.Account
+	var data model.Id
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &data)
 	var res model.ResponseResult
@@ -90,47 +91,21 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 
 	}
-
-	collection, client, err := db.GetDBCollection("user")
-	if err != nil {
-		log.Fatal(err)
-
-	}
-	docID, err := primitive.ObjectIDFromHex(data.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
 	var user model.User
-	err = collection.FindOne(context.TODO(), bson.M{"_id": docID}).Decode(&user)
 
-	if user.Phone == "" {
-		res.Result = "Phone Number already Registered!!"
+	_ = query.FindoneID("user", data.ID1, "_id").Decode(&user)
+	match, err := regexp.MatchString("[0-9]{10}", user.Phone)
+	fmt.Println(match)
+	if data.Exist == false && user.Phone == "" {
+		res.Result = "Not registered"
 		json.NewEncoder(w).Encode(res)
+	} else if data.Exist == false && match {
+		res.Result = "Login required"
+		json.NewEncoder(w).Encode(res)
+	} else if data.Exist == true {
+		json.NewEncoder(w).Encode(user)
 
 	}
-
-	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
-
-			_, err = collection.InsertOne(context.TODO(), user)
-			if err != nil {
-				res.Error = "Error While Creating User, Try Again"
-				json.NewEncoder(w).Encode(res)
-				return
-			}
-
-			otpauth()
-
-			res.Result = "Phone Authentication Required!"
-			json.NewEncoder(w).Encode(res)
-			return
-		}
-	}
-	err = client.Disconnect(context.TODO())
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
 
 //SignUpAuthHandler ...

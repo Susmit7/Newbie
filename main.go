@@ -16,7 +16,7 @@ func main() {
 	fmt.Println("Listening on Port 8080......")
 
 	r.HandleFunc("/api/account", controller.SignUpHandler).Methods("POST")
-	r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
+	//r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
 	r.HandleFunc("/api/login", controller.LoginHandler).Methods("POST")
 	r.HandleFunc("/api/resend", controller.Resendotp).Methods("GET")
 	r.HandleFunc("/api/carousel", controller.Carousel).Methods("GET")

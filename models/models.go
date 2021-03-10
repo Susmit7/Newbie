@@ -6,13 +6,14 @@ import (
 
 // User is ...
 type User struct {
-	Name         string             `json:"name" bson:"name,omitempty"`
-	Phone        string             `json:"phone" bson:"phone,omitempty"`
-	Email        string             `json:"email" bson:"email,omitempty"`
-	Address      string             `json:"address" bson:"address,omitempty"`
-	LocationID   primitive.ObjectID `json:"location" bson:"location,omitempty"`
-	CurrentOrder []string           `json:"current" bson:"current,omitempty"`
-	PastOrder    []string           `json:"past" bson:"past,omitempty"`
+	ID           primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name         string               `json:"name" bson:"name,omitempty"`
+	Phone        string               `json:"phone" bson:"phone,omitempty"`
+	Email        string               `json:"email" bson:"email,omitempty"`
+	Address      string               `json:"address" bson:"address,omitempty"`
+	CurrentOrder []primitive.ObjectID `json:"currentorder" bson:"currentorder,omitempty"`
+	PastOrder    []primitive.ObjectID `json:"pastorder" bson:"pastorder,omitempty"`
+	InTransit    []primitive.ObjectID `json:"intransit,omitempty" bson:"intransit,omitempty"`
 }
 
 //login...
@@ -23,28 +24,25 @@ type Login struct {
 
 // ResponseResult is ...
 type ResponseResult struct {
-	Error  string `json:"error"`
-	Result string `json:"result"`
+	Error  string `json:"error,omitempty"`
+	Result string `json:"result,omitempty"`
 }
 
 // OtpContainer ...
 type OtpContainer struct {
-	OtpEntered string `json:"otpentered"`
-	Number     string `json:"number,omitempty"`
-	From       string `json:"from"`
+	OtpEntered string `json:"otpentered,omitempty" bson:"otp,omitempty"`
+	Number     string `json:"phone" bson:"phone"`
+	From       string `json:"from,omitempty" bson:"from,omitempty"`
 }
 
 type Carousel struct {
 	Carousel [7]string `json:"carousel"`
 }
 
-type Datalist struct {
-	Alldata []string `json:"alldata"`
-}
-
 type Id struct {
-	ID1 string `json:"id" bson:"id"`
-	Sub string `json:"sub,omitempty" bson:"sub,omitempty"`
+	ID1   string `json:"id" bson:"id"`
+	Sub   string `json:"sub,omitempty" bson:"sub,omitempty"`
+	Exist bool   `json:"exist,omitempty" bson:"exist,omitempty"`
 }
 type Items struct {
 	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
