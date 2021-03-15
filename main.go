@@ -16,7 +16,7 @@ func main() {
 	fmt.Println("Listening on Port 8080......")
 
 	r.HandleFunc("/api/account", controller.SignUpHandler).Methods("POST")
-	//r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
+	r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
 	r.HandleFunc("/api/login", controller.LoginHandler).Methods("POST")
 	r.HandleFunc("/api/resend", controller.Resendotp).Methods("GET")
 	r.HandleFunc("/api/carousel", controller.Carousel).Methods("GET")
@@ -27,6 +27,16 @@ func main() {
 	r.HandleFunc("/api/wishlistproducts", controller.WishlistProductsHandler).Methods("POST")
 
 	r.HandleFunc("/api/productdetails", controller.ProductDetailsHandler).Methods("POST")
+
+	r.HandleFunc("/api/checkout", controller.CheckoutHandler).Methods("POST")
+	r.HandleFunc("/api/updatecart", controller.UpdateCart).Methods("PUT")
+	r.HandleFunc("/api/searchengine", controller.SearchEngine).Methods("POST")
+
+	r.HandleFunc("/api/cartproducts", controller.CartProducts).Methods("POST")
+	r.HandleFunc("/api/cartinput", controller.CartInput).Methods("POST")
+	r.HandleFunc("/api/removecartproduct", controller.RemoveCartProduct).Methods("POST")
+	r.HandleFunc("/api/cartfirsttime", controller.CartFirstTime).Methods("POST")
+	r.HandleFunc("/api/stock", controller.ProductStock).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

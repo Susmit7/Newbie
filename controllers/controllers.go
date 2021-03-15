@@ -20,6 +20,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -41,7 +42,7 @@ func Check(url string, method string, w http.ResponseWriter, r *http.Request) {
 
 func otpauth() {
 	accountSid := "AC1cab9315c49a09f2e53bea328a4799bf"
-	authToken := ""
+	authToken := "86abe3bb997f0ad7dbcf63ef85c98fd0"
 	urlStr := "https://api.twilio.com/2010-04-01/Accounts/AC1cab9315c49a09f2e53bea328a4799bf/Messages.json"
 
 	max := 9999
@@ -82,7 +83,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	Check("account", "POST", w, r)
 
 	w.Header().Set("Content-Type", "application/json")
-	var data model.Id
+	var data model.Account
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &data)
 	var res model.ResponseResult
@@ -93,7 +94,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var user model.User
 
-	_ = query.FindoneID("user", data.ID1, "_id").Decode(&user)
+	_ = query.FindoneID("user", data.ID.Hex(), "_id").Decode(&user)
 	match, err := regexp.MatchString("[0-9]{10}", user.Phone)
 	fmt.Println(match)
 	if data.Exist == false && user.Phone == "" {
@@ -110,15 +111,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 //SignUpAuthHandler ...
 func AuthHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/api/auth" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("auth", "POST", w, r)
 	w.Header().Set("Content-Type", "application/json")
 	var userOtp model.OtpContainer
 	body, _ := ioutil.ReadAll(r.Body)
@@ -173,15 +166,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/api/login" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
+	Check("login", "POST", w, r)
 
 	w.Header().Set("Content-Type", "application/json")
 	var login model.Login
@@ -352,15 +337,15 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var list []model.Items
 	var item model.Items
+	collection, client := query.Connection("products")
 	for i := 0; i < len(product.Wisharr); i++ {
 		item.Img = nil
 		item.Itemsid = nil
-		err = query.FindoneID("products", product.Wisharr[i].Hex(), "_id").Decode(&item)
-		if err != nil {
-			log.Fatal(err)
-		}
+		//_ = query.FindoneID("products", product.Wisharr[i].Hex(), "_id").Decode(&item)
+		_ = collection.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
 		list = append(list, item)
 	}
+	defer query.Endconn(client)
 	json.NewEncoder(w).Encode(list)
 }
 
@@ -388,4 +373,302 @@ func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(item)
 
+}
+
+//checkout api
+
+func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
+	Check("checkout", "POST", w, r)
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	filter := bson.M{"userid": query.DocId(id.ID1)}
+	update := bson.M{"$set": bson.M{"product": bson.A{}}}
+
+	var products model.Cart
+
+	_ = query.FindoneID("cart", id.ID1, "userid").Decode(&products)
+
+	query.UpdateOne("cart", filter, update)
+
+	var count []int
+	var productid []primitive.ObjectID
+	count = nil
+	productid = nil
+	for i := 0; i < len(products.Product); i++ {
+		count = append(count, products.Product[i].Count)
+		productid = append(productid, products.Product[i].P_id)
+	}
+
+	filter1 := bson.M{"_id": query.DocId(id.ID1)}
+	collection, client := query.Connection("user")
+	for i := 0; i < len(products.Product); i++ {
+		update1 := bson.M{"$push": bson.M{"currentorder": products.Product[i]}}
+		_, err := collection.UpdateOne(context.TODO(), filter1, update1)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	query.Endconn(client)
+
+	fmt.Println(productid)
+	fmt.Println(count)
+	collection2, client2 := query.Connection("user")
+	for i := 0; i < len(products.Product); i++ {
+		filter2 := bson.M{"_id": productid[i]}
+		update2 := bson.M{"$inc": bson.M{"stock": -count[i]}}
+		_, err := collection2.UpdateOne(context.TODO(), filter2, update2, options.Update().SetUpsert(true))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	query.Endconn(client2)
+
+}
+
+//update cart api
+func UpdateCart(w http.ResponseWriter, r *http.Request) {
+
+	Check("updatecart", "PUT", w, r)
+
+	w.Header().Set("Content-Type", "application/json")
+	var cart model.CartContainer
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &cart)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	filter := bson.M{"userid": query.DocId(cart.UserID)}
+
+	if bool(cart.Status) == true {
+		update := bson.M{"$push": bson.M{"itemsId": query.DocId(cart.ItemID)}}
+		query.UpdateOne("cart", filter, update)
+
+		response := true
+		json.NewEncoder(w).Encode(response)
+
+	} else if bool(cart.Status) == false {
+		update1 := bson.M{"$push": bson.M{"itemsId": query.DocId(cart.ItemID)}}
+
+		query.UpdateOne("cart", filter, update1)
+
+		response := false
+		json.NewEncoder(w).Encode(response)
+	}
+}
+
+//SearcEngine api
+func SearchEngine(w http.ResponseWriter, r *http.Request) {
+
+	Check("searchengine", "POST", w, r)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	body, _ := ioutil.ReadAll(r.Body)
+
+	var srch model.SearchProduct
+
+	var res model.ResponseResult
+
+	err := json.Unmarshal(body, &srch)
+	if err != nil {
+		log.Fatal(w, "error occured while unmarshling")
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+	}
+
+	search := bson.M{"$text": bson.M{"$search": srch.Search}}
+
+	cursor := query.FindAll("products", search)
+
+	var show []model.Items
+	var product model.Items
+	defer cursor.Close(context.TODO())
+	for cursor.Next(context.TODO()) {
+		product.Img = nil
+		product.Itemsid = nil
+		if err = cursor.Decode(&product); err != nil {
+			log.Fatal(err)
+		}
+		show = append(show, product)
+	}
+
+	json.NewEncoder(w).Encode(show)
+
+}
+
+//cart products api
+func CartProducts(w http.ResponseWriter, r *http.Request) {
+
+	Check("cartproducts", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+	}
+
+	var item model.Cart
+
+	err = query.FindoneID("cart", id.ID1, "userid").Decode(&item)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var prod []model.Product
+	for i := 0; i < len(item.Product); i++ {
+		prod = append(prod, item.Product[i])
+	}
+
+	json.NewEncoder(w).Encode(prod)
+
+}
+
+//Cart First Time
+func CartFirstTime(w http.ResponseWriter, r *http.Request) {
+
+	Check("cartfirsttime", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var ct model.CartInput
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &ct)
+	var res model.ResponseResult
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, client := query.Connection("cart")
+
+	var doc model.Cart
+
+	err = collection.FindOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration}).Decode(&doc)
+
+	if err != nil {
+
+		_, err = collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid}, bson.M{"$push": bson.M{"product": ct.Product}})
+
+		res1 := "New product added"
+		json.NewEncoder(w).Encode(res1)
+
+	} else {
+
+		update := bson.M{"$set": bson.M{"product.$.count": ct.Product.Count + 1}}
+
+		_, err = collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration}, update)
+		if err != nil {
+			log.Fatal(err)
+		}
+		res2 := "Count of product increased"
+		json.NewEncoder(w).Encode(res2)
+
+	}
+	query.Endconn(client)
+
+}
+
+//CartInput
+
+func CartInput(w http.ResponseWriter, r *http.Request) {
+
+	Check("cartinput", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var ct model.CartInput
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &ct)
+	var res model.ResponseResult
+
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+	}
+	collection, client := query.Connection("cart")
+
+	var doc model.Cart
+
+	err = collection.FindOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.count": ct.Product.Count, "product.duration": ct.Product.Duration}).Decode(&doc)
+	if err != nil {
+		//didn't found any match
+		_, err = collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid}, bson.M{"$push": bson.M{"product": ct.Product}})
+
+		respn := "New Product Added"
+		json.NewEncoder(w).Encode(respn)
+
+	} else {
+		// if found the match
+		_, err = collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id}, bson.M{"$set": bson.M{"product.count": ct.Product.Count, "product.duration": ct.Product.Duration, "product._rent": ct.Product.Rent}})
+
+		respm := "Existing Product Updated"
+		json.NewEncoder(w).Encode(respm)
+
+	}
+	query.Endconn(client)
+}
+
+//Remove Cart Products
+
+func RemoveCartProduct(w http.ResponseWriter, r *http.Request) {
+
+	Check("removecartproduct", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var rem model.RemoveCartProduct
+
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &rem)
+
+	filter := bson.M{"userid": rem.UserId}
+	update := bson.M{"$pull": bson.M{"product": bson.M{"p_id": rem.ProductId, "count": rem.Count, "duration": rem.Duration}}}
+	query.UpdateOne("cart", filter, update)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	respn := "Data Removed"
+	json.NewEncoder(w).Encode(respn)
+}
+
+//to be changed
+func ProductStock(w http.ResponseWriter, r *http.Request) {
+
+	Check("stock", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var s model.StockId
+	var sd model.StockData
+
+	body, _ := ioutil.ReadAll(r.Body)
+
+	err := json.Unmarshal(body, &s)
+
+	var res model.ResponseResult
+
+	err = query.FindoneID("products", s.ProductId.Hex(), "_id").Decode(&sd)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+
+	json.NewEncoder(w).Encode(sd.Stock)
 }

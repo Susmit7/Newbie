@@ -1,0 +1,27 @@
+// MongoDB Playground
+// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+
+// The current database to use.
+use('RHT');
+
+// Create a new index in the collection.
+db.getCollection('products')
+  .createIndex(
+    {
+
+      Name:'text',
+     details:'text'    
+    }, {
+
+
+      weights:{
+        Name :9,
+       details:3
+      },
+      name:'Name_index'
+    }
+
+
+//.sort( { score: { $meta: "textScore" } }
+
+  );
