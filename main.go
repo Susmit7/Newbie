@@ -15,11 +15,13 @@ func main() {
 	fmt.Println("Starting Server.....")
 	fmt.Println("Listening on Port 8080......")
 
-	r.HandleFunc("/api/account", controller.SignUpHandler).Methods("POST")
+	r.HandleFunc("/api/account", controller.AccountHandler).Methods("POST")
 	r.HandleFunc("/api/auth", controller.AuthHandler).Methods("POST")
 	r.HandleFunc("/api/login", controller.LoginHandler).Methods("POST")
 	r.HandleFunc("/api/resend", controller.Resendotp).Methods("GET")
 	r.HandleFunc("/api/carousel", controller.Carousel).Methods("GET")
+
+	r.HandleFunc("/api/signup", controller.SignupHandler).Methods("POST")
 
 	r.HandleFunc("/api/productslist", controller.ProductsList).Methods("POST")
 	r.HandleFunc("/api/usercreation", controller.UserCreationHandler).Methods("GET")

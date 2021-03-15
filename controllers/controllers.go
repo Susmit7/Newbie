@@ -77,8 +77,28 @@ func otpauth() {
 	}
 }
 
-// SignUpHandler ...
-func SignUpHandler(w http.ResponseWriter, r *http.Request) {
+//signup/update handler
+
+func SignupHandler(w http.ResponseWriter, r *http.Request) {
+	Check("signup", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+	var data model.User
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &data)
+	var res model.ResponseResult
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+	filter := bson.M{"_id": data.ID}
+	update := bson.M{"$set": data}
+	query.UpdateOne("user", filter, update)
+
+}
+
+// AccountHandler ...
+func AccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	Check("account", "POST", w, r)
 

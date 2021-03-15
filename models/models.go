@@ -9,12 +9,12 @@ import (
 // User is ...
 type User struct {
 	ID           primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name         string               `json:"name" bson:"name,omitempty"`
-	Phone        string               `json:"phone" bson:"phone,omitempty"`
-	Email        string               `json:"email" bson:"email,omitempty"`
-	Address      string               `json:"address" bson:"address,omitempty"`
-	CurrentOrder []primitive.ObjectID `json:"currentorder" bson:"currentorder,omitempty"`
-	PastOrder    []primitive.ObjectID `json:"pastorder" bson:"pastorder,omitempty"`
+	Name         string               `json:"name,omitempty" bson:"name,omitempty"`
+	Phone        string               `json:"phone,omitempty" bson:"phone,omitempty"`
+	Email        string               `json:"email,omitempty" bson:"email,omitempty"`
+	Address      string               `json:"address,omitempty" bson:"address,omitempty"`
+	CurrentOrder []primitive.ObjectID `json:"currentorder,omitempty" bson:"currentorder,omitempty"`
+	PastOrder    []primitive.ObjectID `json:"pastorder,omitempty" bson:"pastorder,omitempty"`
 	InTransit    []primitive.ObjectID `json:"intransit,omitempty" bson:"intransit,omitempty"`
 }
 
