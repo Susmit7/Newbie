@@ -41,5 +41,8 @@ func main() {
 	r.HandleFunc("/api/cartfirsttime", controller.CartFirstTime).Methods("POST")
 	r.HandleFunc("/api/stock", controller.ProductStock).Methods("POST")
 	r.HandleFunc("/api/cartupdate", controller.ProductStock).Methods("POST")
+
+	r.HandleFunc("/api/stockcheck", check.StockCheck).Methods("POST")
+
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

@@ -48,15 +48,16 @@ type Id struct {
 }
 type Items struct {
 	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
-	Subcategoryid primitive.ObjectID   `json:"subcategoryid" bson:"subcategoryid"`
-	Name          string               `json:"name" bson:"name"`
-	Img           []string             `json:"img" bson:"img"`
-	Details       string               `json:"details" bson:"details"`
-	Price         int                  `json:"price" bson:"price"`
-	Rent          int                  `json:"rent" bson:"rent"`
-	Duration      int                  `json:"duration" bson:"duration"`
-	Itemsid       []primitive.ObjectID `json:"itemsid" bson:"itemsid"`
-	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
+	Subcategoryid primitive.ObjectID   `json:"subcategoryid,omitempty" bson:"subcategoryid,omitempty"`
+	Name          string               `json:"name,omitempty" bson:"name,omitempty"`
+	Img           []string             `json:"img,omitempty" bson:"img,omitempty"`
+	Details       string               `json:"details,omitempty" bson:"details,omitempty"`
+	Price         int                  `json:"price,omitempty" bson:"price,omitempty"`
+	Rent          int                  `json:"rent,omitempty" bson:"rent,omitempty"`
+	Duration      int                  `json:"duration,omitempty" bson:"duration,omitempty"`
+	Itemsid       []primitive.ObjectID `json:"itemsid,omitempty" bson:"itemsid,omitempty"`
+	LocationID    primitive.ObjectID   `json:"locationid,omitempty" bson:"locationid,omitempty"`
+	Stock         int                  `json:"stock,omitempty" bson:"stock,omitempty"`
 }
 
 type Wishlist struct {
@@ -81,7 +82,7 @@ type Product struct {
 	P_id     primitive.ObjectID `json:"p_id,omitempty" bson:"p_id,omitempty"`
 	Location primitive.ObjectID `json:"locationid,omitempty" bson:"locationid,omitempty"`
 	Img      string             `json:"img,omitempty" bson:"img,omitempty"`
-	Date     time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Date     time.Time          `json:"checkoutdate,omitempty" bson:"checkoutdate,omitempty"`
 	Name     string             `json:"name,omitempty" bson:"name,omitempty"`
 	Count    int                `json:"count,omitempty" bson:"count,omitempty"`
 	Duration int                `json:"duration,omitempty" bson:"duration,omitempty"`

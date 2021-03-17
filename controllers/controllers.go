@@ -692,7 +692,15 @@ func ProductStock(w http.ResponseWriter, r *http.Request) {
 
 func CartUpdate(w http.ResponseWriter, r *http.Request) {
 
-	Check("cartupdate", "POST", w, r)
+	if r.URL.Path != "/api/cartupdate" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	//	userid, value, productid,count,duration.
 
@@ -724,7 +732,7 @@ func CartUpdate(w http.ResponseWriter, r *http.Request) {
 		if ct.Status == true {
 
 			update1 := bson.M{"$set": bson.M{"product.$.Deposit": ct.Product.Deposit, "product.$._rent": ct.Product.Rent}, "$inc": bson.M{"product.$.count": ct.Value}} //, "$inc": bson.M{"product.$.count": ct.Value}}
-			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration, "product.count": ct.Product.Count}, update1)
+			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration}, update1)
 			if err != nil {
 				res.Error = err.Error()
 				json.NewEncoder(w).Encode(res)
@@ -735,7 +743,7 @@ func CartUpdate(w http.ResponseWriter, r *http.Request) {
 		} else if ct.Status == false {
 
 			update2 := bson.M{"$set": bson.M{"product.$.Deposit": ct.Product.Deposit, "product.$._rent": ct.Product.Rent}, "$inc": bson.M{"product.$.count": -ct.Value}}
-			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration, "product.count": ct.Product.Count}, update2)
+			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration}, update2)
 			if err != nil {
 				res.Error = err.Error()
 				json.NewEncoder(w).Encode(res)
@@ -749,4 +757,52 @@ func CartUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func StockCheckHandler(w http.ResponseWriter, id primitive.ObjectID) {
+	var res model.ResponseResult
+	var products model.Cart
+
+	err := query.FindoneID("cart", id, "userid").Decode(&products)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	var count []int
+	var productid []primitive.ObjectID
+	count = nil
+	productid = nil
+	for i := 0; i < len(products.Product); i++ {
+		count = append(count, products.Product[i].Count)
+		productid = append(productid, products.Product[i].P_id)
+	}
+	var stock []int
+	var item model.Items
+	stock = nil
+	collection, client := query.Connection("products")
+	for i := 0; i < len(products.Product); i++ {
+		err := collection.FindOne(context.TODO(), bson.M{"_id": productid[i]}).Decode(&item)
+		if err != nil {
+			res.Error = err.Error()
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		stock = append(stock, item.Stock)
+	}
+
+	for i := 0; i < len(products.Product); i++ {
+		if count[i] > stock[i] {
+
+			json.NewEncoder(w).Encode(false)
+			return
+		}
+	}
+	if len(count) == 0 {
+		json.NewEncoder(w).Encode("No Item in Cart")
+	} else {
+		json.NewEncoder(w).Encode(true)
+	}
+
+	query.Endconn(client)
 }
