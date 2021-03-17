@@ -114,9 +114,9 @@ func AccountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var user model.User
 
-	_ = query.FindoneID("user", data.ID.Hex(), "_id").Decode(&user)
+	_ = query.FindoneID("user", data.ID, "_id").Decode(&user)
 	match, err := regexp.MatchString("[0-9]{10}", user.Phone)
-	fmt.Println(match)
+	//fmt.Println(match)
 	if data.Exist == false && user.Phone == "" {
 		res.Result = "Not registered"
 		json.NewEncoder(w).Encode(res)
@@ -259,7 +259,7 @@ func ProductsList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	filter := bson.M{"locationid": query.DocId(id.ID1), "subcategoryid": query.DocId(id.Sub)}
+	filter := bson.M{"locationid": id.ID1, "subcategoryid": id.Sub}
 
 	cursor := query.FindAll("products", filter)
 
@@ -288,7 +288,7 @@ func UserCreationHandler(w http.ResponseWriter, r *http.Request) {
 	result := query.InsertOne("user", user)
 
 	oid, _ := result.InsertedID.(primitive.ObjectID)
-	id.ID1 = oid.Hex()
+	id.ID1 = oid
 
 	var wish model.Wishlist
 	wish.Userid = oid
@@ -319,16 +319,16 @@ func WishlistHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	filter := bson.M{"userid": query.DocId(wishlist.Userid)}
+	filter := bson.M{"userid": wishlist.Userid}
 
 	if wishlist.Status == true {
-		update := bson.M{"$push": bson.M{"itemsId": query.DocId(wishlist.Productid)}}
+		update := bson.M{"$push": bson.M{"itemsId": wishlist.Productid}}
 		query.UpdateOne("wishlist", filter, update)
 		response := true
 		json.NewEncoder(w).Encode(response)
 
 	} else if wishlist.Status == false {
-		update := bson.M{"$pull": bson.M{"itemsId": query.DocId(wishlist.Productid)}}
+		update := bson.M{"$pull": bson.M{"itemsId": wishlist.Productid}}
 		query.UpdateOne("wishlist", filter, update)
 		response := false
 		json.NewEncoder(w).Encode(response)
@@ -341,7 +341,7 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	Check("wishlistproducts", "POST", w, r)
 	w.Header().Set("Content-Type", "application/json")
-
+	var res model.ResponseResult
 	var id model.Id
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &id)
@@ -351,17 +351,19 @@ func WishlistProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	var product model.Wishlistarray
-	err = query.FindoneID("wishlist", id.ID1, "userid").Decode(&product)
-	if err != nil {
-		log.Fatal(err)
-	}
 	var list []model.Items
 	var item model.Items
+	err = query.FindoneID("wishlist", id.ID1, "userid").Decode(&product)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(list)
+
+	}
+
 	collection, client := query.Connection("products")
 	for i := 0; i < len(product.Wisharr); i++ {
 		item.Img = nil
 		item.Itemsid = nil
-		//_ = query.FindoneID("products", product.Wisharr[i].Hex(), "_id").Decode(&item)
 		_ = collection.FindOne(context.TODO(), bson.M{"_id": product.Wisharr[i]}).Decode(&item)
 		list = append(list, item)
 	}
@@ -397,25 +399,20 @@ func ProductDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 //checkout api
 
-func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
-	Check("checkout", "POST", w, r)
-	var id model.Id
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &id)
-	var res model.ResponseResult
+func CheckoutHandler(w http.ResponseWriter, id primitive.ObjectID) {
 
+	var res model.ResponseResult
+	filter := bson.M{"userid": id}
+	update := bson.M{"$set": bson.M{"product": bson.A{}}}
+
+	var products model.Cart
+
+	err := query.FindoneID("cart", id, "userid").Decode(&products)
 	if err != nil {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-
-	filter := bson.M{"userid": query.DocId(id.ID1)}
-	update := bson.M{"$set": bson.M{"product": bson.A{}}}
-
-	var products model.Cart
-
-	_ = query.FindoneID("cart", id.ID1, "userid").Decode(&products)
 
 	query.UpdateOne("cart", filter, update)
 
@@ -428,7 +425,7 @@ func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
 		productid = append(productid, products.Product[i].P_id)
 	}
 
-	filter1 := bson.M{"_id": query.DocId(id.ID1)}
+	filter1 := bson.M{"_id": id}
 	collection, client := query.Connection("user")
 	for i := 0; i < len(products.Product); i++ {
 		update1 := bson.M{"$push": bson.M{"currentorder": products.Product[i]}}
@@ -439,9 +436,9 @@ func CheckoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	query.Endconn(client)
 
-	fmt.Println(productid)
-	fmt.Println(count)
-	collection2, client2 := query.Connection("user")
+	//fmt.Println(productid)
+	//fmt.Println(count)
+	collection2, client2 := query.Connection("products")
 	for i := 0; i < len(products.Product); i++ {
 		filter2 := bson.M{"_id": productid[i]}
 		update2 := bson.M{"$inc": bson.M{"stock": -count[i]}}
@@ -471,17 +468,17 @@ func UpdateCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filter := bson.M{"userid": query.DocId(cart.UserID)}
+	filter := bson.M{"userid": cart.UserID}
 
 	if bool(cart.Status) == true {
-		update := bson.M{"$push": bson.M{"itemsId": query.DocId(cart.ItemID)}}
+		update := bson.M{"$push": bson.M{"itemsId": cart.ItemID}}
 		query.UpdateOne("cart", filter, update)
 
 		response := true
 		json.NewEncoder(w).Encode(response)
 
 	} else if bool(cart.Status) == false {
-		update1 := bson.M{"$push": bson.M{"itemsId": query.DocId(cart.ItemID)}}
+		update1 := bson.M{"$push": bson.M{"itemsId": cart.ItemID}}
 
 		query.UpdateOne("cart", filter, update1)
 
@@ -683,7 +680,7 @@ func ProductStock(w http.ResponseWriter, r *http.Request) {
 
 	var res model.ResponseResult
 
-	err = query.FindoneID("products", s.ProductId.Hex(), "_id").Decode(&sd)
+	err = query.FindoneID("products", s.ProductId, "_id").Decode(&sd)
 	if err != nil {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
@@ -691,4 +688,65 @@ func ProductStock(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(sd.Stock)
+}
+
+func CartUpdate(w http.ResponseWriter, r *http.Request) {
+
+	Check("cartupdate", "POST", w, r)
+	w.Header().Set("Content-Type", "application/json")
+	//	userid, value, productid,count,duration.
+
+	var ct model.CartInput
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &ct)
+	var res model.ResponseResult
+
+	fmt.Println("Unmarshall body", ct)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	collection, client, err := db.GetDBCollection("cart")
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+
+	}
+
+	var doc model.Cart
+	err = collection.FindOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.count": ct.Product.Count, "product.duration": ct.Product.Duration}).Decode(&doc)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+	} else {
+
+		if ct.Status == true {
+
+			update1 := bson.M{"$set": bson.M{"product.$.Deposit": ct.Product.Deposit, "product.$._rent": ct.Product.Rent}, "$inc": bson.M{"product.$.count": ct.Value}} //, "$inc": bson.M{"product.$.count": ct.Value}}
+			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration, "product.count": ct.Product.Count}, update1)
+			if err != nil {
+				res.Error = err.Error()
+				json.NewEncoder(w).Encode(res)
+			}
+			res2 := "Count of product increased"
+			json.NewEncoder(w).Encode(res2)
+
+		} else if ct.Status == false {
+
+			update2 := bson.M{"$set": bson.M{"product.$.Deposit": ct.Product.Deposit, "product.$._rent": ct.Product.Rent}, "$inc": bson.M{"product.$.count": -ct.Value}}
+			_, err := collection.UpdateOne(context.TODO(), bson.M{"userid": ct.Userid, "product.p_id": ct.Product.P_id, "product.duration": ct.Product.Duration, "product.count": ct.Product.Count}, update2)
+			if err != nil {
+				res.Error = err.Error()
+				json.NewEncoder(w).Encode(res)
+			}
+			res2 := "Count of product decreased"
+			json.NewEncoder(w).Encode(res2)
+		}
+	}
+
+	err = client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
 }

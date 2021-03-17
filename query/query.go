@@ -10,15 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func DocId(id string) primitive.ObjectID {
-	docID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return docID
-
-}
-
 func Connection(val string) (*mongo.Collection, *mongo.Client) {
 
 	collection, client, err := db.GetDBCollection(val)
@@ -36,10 +27,10 @@ func Endconn(client *mongo.Client) {
 	}
 }
 
-func FindoneID(val string, id string, key string) *mongo.SingleResult {
+func FindoneID(val string, id primitive.ObjectID, key string) *mongo.SingleResult {
 
 	collection, client := Connection(val)
-	result := collection.FindOne(context.TODO(), bson.M{key: DocId(id)})
+	result := collection.FindOne(context.TODO(), bson.M{key: id})
 	defer Endconn(client)
 
 	return result

@@ -42,9 +42,9 @@ type Carousel struct {
 }
 
 type Id struct {
-	ID1   string `json:"id" bson:"id"`
-	Sub   string `json:"sub,omitempty" bson:"sub,omitempty"`
-	Exist bool   `json:"exist,omitempty" bson:"exist,omitempty"`
+	ID1   primitive.ObjectID `json:"id" bson:"id"`
+	Sub   primitive.ObjectID `json:"sub,omitempty" bson:"sub,omitempty"`
+	Exist bool               `json:"exist,omitempty" bson:"exist,omitempty"`
 }
 type Items struct {
 	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
@@ -86,36 +86,39 @@ type Product struct {
 	Count    int                `json:"count,omitempty" bson:"count,omitempty"`
 	Duration int                `json:"duration,omitempty" bson:"duration,omitempty"`
 	Rent     int                `json:"_rent,omitempty" bson:"_rent,omitempty"`
+	Deposit  int                `json:"deposit,omitempty" bson:"deposit,omitempty`
 }
 
 type Cartproduct struct {
-	Status    bool   `json:"status" bson:"status"`
-	Userid    string `json:"userid" bson:"userid"`
-	Productid string `json:"productid" bson:"productid"`
+	Status    bool               `json:"status" bson:"status"`
+	Userid    primitive.ObjectID `json:"userid" bson:"userid"`
+	Productid primitive.ObjectID `json:"productid" bson:"productid"`
 }
 
 //Id ...
 type CartContainer struct {
-	UserID string `json:"UserID" bson:"UserID"`
-	ItemID string `json:"ItemID" bson:"ItemID"`
-	Status bool   `json:"Status" bson:"Status"`
+	UserID primitive.ObjectID `json:"UserID" bson:"UserID"`
+	ItemID primitive.ObjectID `json:"ItemID" bson:"ItemID"`
+	Status bool               `json:"Status" bson:"Status"`
 }
 
 type Total struct {
-	CartID string `json:"CartID" bson:"CartID"`
-	UserID string `json:"UserID,omitempty" bson:"UserID,omitempty"`
-	Rent   int    `json:"Rent" bson:"Rent"`
+	CartID primitive.ObjectID `json:"CartID" bson:"CartID"`
+	UserID primitive.ObjectID `json:"UserID,omitempty" bson:"UserID,omitempty"`
+	Rent   int                `json:"Rent" bson:"Rent"`
 }
 
 //SearchProduct ...
 type SearchProduct struct {
-	Search     string `json:"Search,omitempty" bson:"Search,omitempty"`
-	LocationID string `json:"locationid,omitempty" bson:"locationid,omitempty"`
+	Search     string             `json:"Search,omitempty" bson:"Search,omitempty"`
+	LocationID primitive.ObjectID `json:"locationid,omitempty" bson:"locationid,omitempty"`
 }
 
 type CartInput struct {
-	Userid  primitive.ObjectID `json:"userid" bson:"userid"`
-	Product Product            `json:"product" bson:"product"`
+	Userid  primitive.ObjectID `json:"userid,omitempty" bson:"userid,omitempty"`
+	Value   int                `json:"value,omitempty" bson:"value,omitempty"`
+	Status  bool               `json:"status,omitempty" bson:"status,omitempty"`
+	Product Product            `json:"product,omitempty" bson:"product,omitempty"`
 }
 
 type RemoveCartProduct struct {

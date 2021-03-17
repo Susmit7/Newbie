@@ -1,6 +1,7 @@
 package main
 
 import (
+	check "Newbie/check"
 	controller "Newbie/controllers"
 	"fmt"
 	"log"
@@ -30,7 +31,7 @@ func main() {
 
 	r.HandleFunc("/api/productdetails", controller.ProductDetailsHandler).Methods("POST")
 
-	r.HandleFunc("/api/checkout", controller.CheckoutHandler).Methods("POST")
+	r.HandleFunc("/api/checkout", check.Checkout).Methods("POST")
 	r.HandleFunc("/api/updatecart", controller.UpdateCart).Methods("PUT")
 	r.HandleFunc("/api/searchengine", controller.SearchEngine).Methods("POST")
 
@@ -39,6 +40,6 @@ func main() {
 	r.HandleFunc("/api/removecartproduct", controller.RemoveCartProduct).Methods("POST")
 	r.HandleFunc("/api/cartfirsttime", controller.CartFirstTime).Methods("POST")
 	r.HandleFunc("/api/stock", controller.ProductStock).Methods("POST")
-
+	r.HandleFunc("/api/cartupdate", controller.ProductStock).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
