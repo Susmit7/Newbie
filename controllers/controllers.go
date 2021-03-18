@@ -794,14 +794,14 @@ func StockCheckHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	for i := 0; i < len(products.Product); i++ {
 		if count[i] > stock[i] {
 
-			json.NewEncoder(w).Encode(false)
+			json.NewEncoder(w).Encode("fail")
 			return
 		}
 	}
 	if len(count) == 0 {
 		json.NewEncoder(w).Encode("No Item in Cart")
 	} else {
-		json.NewEncoder(w).Encode(true)
+		json.NewEncoder(w).Encode("success")
 	}
 
 	query.Endconn(client)

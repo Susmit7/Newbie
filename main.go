@@ -40,7 +40,7 @@ func main() {
 	r.HandleFunc("/api/removecartproduct", controller.RemoveCartProduct).Methods("POST")
 	r.HandleFunc("/api/cartfirsttime", controller.CartFirstTime).Methods("POST")
 	r.HandleFunc("/api/stock", controller.ProductStock).Methods("POST")
-	r.HandleFunc("/api/cartupdate", controller.ProductStock).Methods("POST")
+	r.HandleFunc("/api/cartupdate", controller.CartUpdate).Methods("POST")
 
 	r.HandleFunc("/api/stockcheck", check.StockCheck).Methods("POST")
 
