@@ -8,14 +8,14 @@ import (
 
 // User is ...
 type User struct {
-	ID           primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name         string               `json:"name,omitempty" bson:"name,omitempty"`
-	Phone        string               `json:"phone,omitempty" bson:"phone,omitempty"`
-	Email        string               `json:"email,omitempty" bson:"email,omitempty"`
-	Address      string               `json:"address,omitempty" bson:"address,omitempty"`
-	CurrentOrder []primitive.ObjectID `json:"currentorder,omitempty" bson:"currentorder,omitempty"`
-	PastOrder    []primitive.ObjectID `json:"pastorder,omitempty" bson:"pastorder,omitempty"`
-	InTransit    []primitive.ObjectID `json:"intransit,omitempty" bson:"intransit,omitempty"`
+	ID           primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name         string             `json:"name,omitempty" bson:"name,omitempty"`
+	Phone        string             `json:"phone,omitempty" bson:"phone,omitempty"`
+	Email        string             `json:"email,omitempty" bson:"email,omitempty"`
+	Address      string             `json:"address,omitempty" bson:"address,omitempty"`
+	CurrentOrder []Product          `json:"currentorder,omitempty" bson:"currentorder,omitempty"`
+	PastOrder    []Product          `json:"pastorder,omitempty" bson:"pastorder,omitempty"`
+	//InTransit    []Product          `json:"intransit,omitempty" bson:"intransit,omitempty"`
 }
 
 //login...
@@ -58,6 +58,8 @@ type Items struct {
 	Itemsid       []primitive.ObjectID `json:"itemsid,omitempty" bson:"itemsid,omitempty"`
 	LocationID    primitive.ObjectID   `json:"locationid,omitempty" bson:"locationid,omitempty"`
 	Stock         int                  `json:"stock,omitempty" bson:"stock,omitempty"`
+	Deposit       int                  `json:"deposit,omitempty" bson:"deposit,omitempty"`
+	Demand        int                  `json:"demand,omitempty" bson:"demand,omitempty"`
 }
 
 type Wishlist struct {

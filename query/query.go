@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func Connection(val string) (*mongo.Collection, *mongo.Client) {
@@ -57,7 +58,9 @@ func InsertOne(val string, doc interface{}) *mongo.InsertOneResult {
 
 func FindAll(val string, filter primitive.M) *mongo.Cursor {
 	collection, client := Connection(val)
-	cursor, err := collection.Find(context.TODO(), filter)
+	skip := int64(0)
+	limit := int64(10)
+	cursor, err := collection.Find(context.TODO(), filter, options.Find().SetLimit(limit), options.Find().SetSkip(skip))
 	if err != nil {
 		log.Fatal(err)
 	}

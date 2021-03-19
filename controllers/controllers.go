@@ -806,3 +806,21 @@ func StockCheckHandler(w http.ResponseWriter, id primitive.ObjectID) {
 
 	query.Endconn(client)
 }
+
+//current order showing api
+func CurrentOrderHandler(w http.ResponseWriter, id primitive.ObjectID) {
+	var res model.ResponseResult
+	var user model.User
+	err := query.FindoneID("user", id, "_id").Decode(&user)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	var response []model.Product
+	for i := 0; i < len(user.CurrentOrder); i++ {
+		response = append(response, user.CurrentOrder[i])
+
+	}
+	json.NewEncoder(w).Encode(response)
+}
