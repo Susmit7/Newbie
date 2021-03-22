@@ -423,12 +423,13 @@ func CheckoutHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	for i := 0; i < len(products.Product); i++ {
 		count = append(count, products.Product[i].Count)
 		productid = append(productid, products.Product[i].P_id)
+		products.Product[i].Date = time.Now()
 	}
 
 	filter1 := bson.M{"_id": id}
 	collection, client := query.Connection("user")
 	for i := 0; i < len(products.Product); i++ {
-		update1 := bson.M{"$push": bson.M{"currentorder": products.Product[i]}}
+		update1 := bson.M{"$push": bson.M{"intransit": products.Product[i]}}
 		_, err := collection.UpdateOne(context.TODO(), filter1, update1)
 		if err != nil {
 			log.Fatal(err)
@@ -442,10 +443,16 @@ func CheckoutHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	for i := 0; i < len(products.Product); i++ {
 		filter2 := bson.M{"_id": productid[i]}
 		update2 := bson.M{"$inc": bson.M{"stock": -count[i]}}
+		update3 := bson.M{"$inc": bson.M{"demand": 1}}
 		_, err := collection2.UpdateOne(context.TODO(), filter2, update2, options.Update().SetUpsert(true))
 		if err != nil {
 			log.Fatal(err)
 		}
+		_, err1 := collection2.UpdateOne(context.TODO(), filter2, update3, options.Update().SetUpsert(true))
+		if err1 != nil {
+			log.Fatal(err1)
+		}
+
 	}
 	query.Endconn(client2)
 
@@ -808,19 +815,52 @@ func StockCheckHandler(w http.ResponseWriter, id primitive.ObjectID) {
 }
 
 //current order showing api
-func CurrentOrderHandler(w http.ResponseWriter, id primitive.ObjectID) {
+func IntransitHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	var res model.ResponseResult
 	var user model.User
-	err := query.FindoneID("user", id, "_id").Decode(&user)
+	collection, client := query.Connection("user")
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
 	}
 	var response []model.Product
-	for i := 0; i < len(user.CurrentOrder); i++ {
-		response = append(response, user.CurrentOrder[i])
+	response = nil
+	for i := 0; i < len(user.InTransit); i++ {
+		response = append(response, user.InTransit[i])
 
 	}
+
+	filter := bson.M{"_id": id}
+
+	for i := 0; i < len(response); i++ {
+		if time.Now().Day()-response[i].Date.Day() > 1 {
+
+			update := bson.M{"$push": bson.M{"currentorder": response[i]}}
+			_, err1 := collection.UpdateOne(context.TODO(), filter, update)
+			if err1 != nil {
+				log.Fatal(err1)
+			}
+			update1 := bson.M{"$pull": bson.M{"intransit": bson.M{"checkoutdate": response[i].Date}}}
+			_, err := collection.UpdateOne(context.TODO(), filter, update1)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		}
+	}
+	err4 := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	if err4 != nil {
+		res.Error = err4.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	response = nil
+	for i := 0; i < len(user.InTransit); i++ {
+		response = append(response, user.InTransit[i])
+
+	}
+	query.Endconn(client)
 	json.NewEncoder(w).Encode(response)
 }

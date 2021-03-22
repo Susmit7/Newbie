@@ -15,7 +15,7 @@ type User struct {
 	Address      string             `json:"address,omitempty" bson:"address,omitempty"`
 	CurrentOrder []Product          `json:"currentorder,omitempty" bson:"currentorder,omitempty"`
 	PastOrder    []Product          `json:"pastorder,omitempty" bson:"pastorder,omitempty"`
-	//InTransit    []Product          `json:"intransit,omitempty" bson:"intransit,omitempty"`
+	InTransit    []Product          `json:"intransit,omitempty" bson:"intransit,omitempty"`
 }
 
 //login...

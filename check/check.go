@@ -42,9 +42,9 @@ func StockCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CurrentOrder(w http.ResponseWriter, r *http.Request) {
+func InTransit(w http.ResponseWriter, r *http.Request) {
 
-	controller.Check("currentorder", "POST", w, r)
+	controller.Check("intransit", "POST", w, r)
 	var id model.Id
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &id)
@@ -54,7 +54,7 @@ func CurrentOrder(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return
 	} else {
-		controller.CurrentOrderHandler(w, id.ID1)
+		controller.IntransitHandler(w, id.ID1)
 
 	}
 }

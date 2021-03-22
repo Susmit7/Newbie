@@ -43,7 +43,7 @@ func main() {
 	r.HandleFunc("/api/cartupdate", controller.CartUpdate).Methods("POST")
 
 	r.HandleFunc("/api/stockcheck", check.StockCheck).Methods("POST")
-	r.HandleFunc("/api/currentorder", check.CurrentOrder).Methods("POST")
+	r.HandleFunc("/api/intransit", check.InTransit).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
