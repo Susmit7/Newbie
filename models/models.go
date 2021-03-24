@@ -138,17 +138,3 @@ type RemoveCartProduct struct {
 type StockId struct {
 	ProductId primitive.ObjectID `json:"_id" bson:"_id"`
 }
-
-type StockData struct {
-	Id            primitive.ObjectID   `json:"_id" bson:"_id"`
-	Subcategoryid primitive.ObjectID   `json:"subcategoryid" bson:"subcategoryid"`
-	Name          string               `json:"name" bson:"name"`
-	Img           []string             `json:"img" bson:"img"`
-	Details       string               `json:"details" bson:"details"`
-	Price         int                  `json:"price" bson:"price"`
-	Rent          int                  `json:"rent" bson:"rent"`
-	Duration      int                  `json:"duration" bson:"duration"`
-	Itemsid       []primitive.ObjectID `json:"itemsid,omitempty" bson:"itemsid,omitempty"`
-	LocationID    primitive.ObjectID   `json:"locationid" bson:"locationid"`
-	Stock         int                  `json:"stock" bson:"stock"`
-}

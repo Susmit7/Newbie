@@ -2,6 +2,7 @@ package query
 
 import (
 	"Newbie/db"
+	model "Newbie/models"
 	"context"
 	"log"
 
@@ -66,4 +67,20 @@ func FindAll(val string, filter primitive.M) *mongo.Cursor {
 	}
 	defer Endconn(client)
 	return cursor
+}
+
+func CurrentUpdate(response model.Product, id primitive.ObjectID, collection *mongo.Collection) {
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$push": bson.M{"pastorder": response}}
+	_, err1 := collection.UpdateOne(context.TODO(), filter, update)
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+	update1 := bson.M{"$pull": bson.M{"currentorder": bson.M{"checkoutdate": response.Date}}}
+	_, err := collection.UpdateOne(context.TODO(), filter, update1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }

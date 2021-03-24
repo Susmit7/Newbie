@@ -44,6 +44,8 @@ func main() {
 
 	r.HandleFunc("/api/stockcheck", check.StockCheck).Methods("POST")
 	r.HandleFunc("/api/intransit", check.InTransit).Methods("POST")
+	r.HandleFunc("/api/currentorder", check.CurrentOrder).Methods("POST")
+	r.HandleFunc("/api/pastorder", check.PastOrder).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

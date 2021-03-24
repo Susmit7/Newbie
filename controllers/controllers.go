@@ -679,7 +679,7 @@ func ProductStock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var s model.StockId
-	var sd model.StockData
+	var sd model.Items
 
 	body, _ := ioutil.ReadAll(r.Body)
 
@@ -814,7 +814,7 @@ func StockCheckHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	query.Endconn(client)
 }
 
-//current order showing api
+//Intransit showing api
 func IntransitHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	var res model.ResponseResult
 	var user model.User
@@ -863,4 +863,96 @@ func IntransitHandler(w http.ResponseWriter, id primitive.ObjectID) {
 	}
 	query.Endconn(client)
 	json.NewEncoder(w).Encode(response)
+}
+
+//current order showing api
+func CurrentOrderHandler(w http.ResponseWriter, id primitive.ObjectID) {
+	var res model.ResponseResult
+	var user model.User
+	collection, client := query.Connection("user")
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	var response []model.Product
+	response = nil
+	for i := 0; i < len(user.CurrentOrder); i++ {
+		response = append(response, user.CurrentOrder[i])
+
+	}
+
+	day := time.Now().Day()
+	month := int(time.Now().Month())
+	year := time.Now().Year()
+
+	for i := 0; i < len(response); i++ {
+		if response[i].Duration == 12 {
+			d := response[i].Date.AddDate(1, 0, 0).Day()
+			m := int(response[i].Date.AddDate(1, 0, 0).Month())
+			y := response[i].Date.AddDate(1, 0, 0).Year()
+			if year >= y && month >= m && day > d {
+				query.CurrentUpdate(response[i], id, collection)
+			}
+
+		} else if response[i].Duration == 24 {
+			d := response[i].Date.AddDate(2, 0, 0).Day()
+			m := int(response[i].Date.AddDate(2, 0, 0).Month())
+			y := response[i].Date.AddDate(2, 0, 0).Year()
+			if year >= y && month >= m && d < day {
+				query.CurrentUpdate(response[i], id, collection)
+			}
+		} else if response[i].Duration == 6 {
+			d := response[i].Date.AddDate(0, 6, 0).Day()
+			m := int(response[i].Date.AddDate(0, 6, 0).Month())
+			y := response[i].Date.AddDate(0, 6, 0).Year()
+			if year >= y && month >= m && d < day {
+				query.CurrentUpdate(response[i], id, collection)
+			}
+		} else if response[i].Duration == 3 {
+			d := response[i].Date.AddDate(0, 3, 0).Day()
+			m := int(response[i].Date.AddDate(0, 3, 0).Month())
+			y := response[i].Date.AddDate(0, 3, 0).Year()
+			if year >= y && month >= m && d < day {
+				query.CurrentUpdate(response[i], id, collection)
+			}
+		}
+	}
+	err4 := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	if err4 != nil {
+		res.Error = err4.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+	response = nil
+	for i := 0; i < len(user.CurrentOrder); i++ {
+		response = append(response, user.CurrentOrder[i])
+
+	}
+	json.NewEncoder(w).Encode(response)
+
+	query.Endconn(client)
+}
+
+func PastOrderHandler(w http.ResponseWriter, id primitive.ObjectID) {
+	var res model.ResponseResult
+	var user model.User
+	collection, client := query.Connection("user")
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	var response []model.Product
+	response = nil
+	for i := 0; i < len(user.PastOrder); i++ {
+		response = append(response, user.PastOrder[i])
+
+	}
+	json.NewEncoder(w).Encode(response)
+
+	query.Endconn(client)
 }

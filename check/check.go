@@ -58,3 +58,37 @@ func InTransit(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+func CurrentOrder(w http.ResponseWriter, r *http.Request) {
+
+	controller.Check("currentorder", "POST", w, r)
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	} else {
+		controller.CurrentOrderHandler(w, id.ID1)
+
+	}
+}
+
+func PastOrder(w http.ResponseWriter, r *http.Request) {
+
+	controller.Check("pastorder", "POST", w, r)
+	var id model.Id
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &id)
+	var res model.ResponseResult
+	if err != nil {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	} else {
+		controller.PastOrderHandler(w, id.ID1)
+
+	}
+}
